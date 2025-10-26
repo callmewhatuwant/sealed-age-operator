@@ -22,6 +22,8 @@ sealedAgeController:
   replicas: 3
 
 ageKeyRotation:
+  initialRun:
+    enabled: true
   schedule: "0 0 1 * *"
   image:
     repository: alpine
