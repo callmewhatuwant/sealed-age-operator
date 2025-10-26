@@ -1,20 +1,8 @@
 /*
 Copyright 2025.
-
 Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
 */
 
-// internal/controller/sealedage_controller.go
 package controller
 
 import (
@@ -95,8 +83,8 @@ func (r *SealedAgeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// 4. Create or update the target Secret (same name as the CR).
 	secretName := cr.Name
-	var secret corev1.Secret
 	secretKey := types.NamespacedName{Name: secretName, Namespace: cr.Namespace}
+	var secret corev1.Secret
 
 	err := r.Get(ctx, secretKey, &secret)
 	if apierrors.IsNotFound(err) {
@@ -136,11 +124,16 @@ func (r *SealedAgeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 
-	// 5. Update status.
+	// 5. Update status — ignore NotFound, keep logs clean.
 	cr.Status.ObservedGeneration = cr.Generation
 	cr.Status.SecretName = secretName
+
 	if uerr := r.Status().Update(ctx, &cr); uerr != nil {
-		logger.Error(uerr, "failed to update status")
+		if apierrors.IsNotFound(uerr) {
+			// CR was deleted before status update — ignore silently.
+			return ctrl.Result{}, nil
+		}
+		logger.V(1).Info("non-fatal: failed to update status", "error", uerr)
 	}
 
 	logger.Info("reconciliation completed", "secret", secretKey.String())
@@ -154,7 +147,7 @@ func (r *SealedAgeReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// decryptWithAge attempts to decrypt the provided armored AGE content using the key Secrets.
+// decryptWithAge decrypts the provided armored AGE content using available key Secrets.
 func decryptWithAge(ctx context.Context, armored string, keySecrets []corev1.Secret, recipients []string) ([]byte, string, error) {
 	logger := log.FromContext(ctx)
 	for _, ks := range keySecrets {

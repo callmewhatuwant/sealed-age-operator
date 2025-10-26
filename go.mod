@@ -1,6 +1,6 @@
 module github.com/yournamecallmewhatuwant/sealed-age-operator
 
-go 1.24.5
+go 1.24.9
 
 require (
 	filippo.io/age v1.2.1
