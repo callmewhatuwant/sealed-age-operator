@@ -50,3 +50,7 @@ formatters:
       - third_party$
       - builtin$
       - examples$
+linters-settings:
+  lll:
+    line-length: 140
+    tab-width: 1
