@@ -49,7 +49,8 @@ func main() {
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metrics endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election for controller manager.")
-	flag.StringVar(&leaderNS, "leader-election-namespace", "", "Namespace for the leader election Lease (defaults to POD_NAMESPACE or sealed-age-system).")
+	flag.StringVar(&leaderNS, "leader-election-namespace", "", 
+		"Namespace for the leader election Lease (defaults to POD_NAMESPACE or sealed-age-system).")
 	flag.StringVar(&keyNS, "key-namespace", "sealed-age-system", "Namespace containing AGE key Secrets.")
 	flag.StringVar(&keyLabelKey, "key-label-key", "app", "Label key for AGE key Secrets.")
 	flag.StringVar(&keyLabelVal, "key-label-val", "age-key", "Label value for AGE key Secrets.")
