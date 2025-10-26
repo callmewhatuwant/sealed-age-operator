@@ -28,7 +28,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/yournamecallmewhatuwant/sealed-age-operator/test/utils"
+	"github.com/callmewhatuwant/sealed-age-operator/test/utils"
 )
 
 var (

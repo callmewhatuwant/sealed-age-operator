@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	securityv1alpha1 "github.com/yournamecallmewhatuwant/sealed-age-operator/api/v1alpha1"
+	securityv1alpha1 "github.com/callmewhatuwant/sealed-age-operator/api/v1alpha1"
 )
 
 var _ = Describe("SealedAge Controller", func() {

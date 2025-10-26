@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	securityv1alpha1 "github.com/yournamecallmewhatuwant/sealed-age-operator/api/v1alpha1"
+	securityv1alpha1 "github.com/callmewhatuwant/sealed-age-operator/api/v1alpha1"
 )
 
 // SealedAgeReconciler reconciles SealedAge resources.

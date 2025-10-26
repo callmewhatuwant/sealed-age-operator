@@ -31,8 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	securityv1alpha1 "github.com/yournamecallmewhatuwant/sealed-age-operator/api/v1alpha1"
-	"github.com/yournamecallmewhatuwant/sealed-age-operator/internal/controller"
+	securityv1alpha1 "github.com/callmewhatuwant/sealed-age-operator/api/v1alpha1"
+	"github.com/callmewhatuwant/sealed-age-operator/internal/controller"
 )
 
 var (

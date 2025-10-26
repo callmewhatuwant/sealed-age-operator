@@ -1,4 +1,4 @@
-module github.com/yournamecallmewhatuwant/sealed-age-operator
+module github.com/callmewhatuwant/sealed-age-operator
 
 go 1.24.9
 
