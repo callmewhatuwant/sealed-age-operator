@@ -1,19 +1,9 @@
+// cmd/main.go
 /*
 Copyright 2025.
 
 Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
 */
-
 package main
 
 import (
@@ -46,16 +36,21 @@ func init() {
 }
 
 func main() {
-	var metricsAddr string
-	var probeAddr string
-	var enableLeaderElection bool
+	var (
+		metricsAddr          string
+		probeAddr            string
+		enableLeaderElection bool
+		leaderNS             string
 
-	// Flags for key Secret namespace/label configuration.
-	var keyNS, keyLabelKey, keyLabelVal string
+		// key Secret Discovery
+		keyNS, keyLabelKey, keyLabelVal string
+	)
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metrics endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election for controller manager.")
+	flag.StringVar(&leaderNS, "leader-election-namespace", "", "Namespace for the leader election Lease (defaults to POD_NAMESPACE or sealed-age-system).")
+
 	flag.StringVar(&keyNS, "key-namespace", "sealed-age-system", "Namespace containing AGE key Secrets.")
 	flag.StringVar(&keyLabelKey, "key-label-key", "app", "Label key for AGE key Secrets.")
 	flag.StringVar(&keyLabelVal, "key-label-val", "age-key", "Label value for AGE key Secrets.")
@@ -64,17 +59,29 @@ func main() {
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
+	// Resolve leader election namespace:
+	// 1) explicit flag > 2) POD_NAMESPACE > 3) sealed-age-system
+	if leaderNS == "" {
+		if podNS := os.Getenv("POD_NAMESPACE"); podNS != "" {
+			leaderNS = podNS
+		} else {
+			leaderNS = "sealed-age-system"
+		}
+	}
+
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	// ✅ FIX: metrics configured via metricsserver.Options for controller-runtime v0.22
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
 			BindAddress: metricsAddr,
 		},
 		HealthProbeBindAddress: probeAddr,
-		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "sealed-age-operator.age.io",
+
+		// 🔒 Leader Election (Lease in coordination.k8s.io)
+		LeaderElection:          enableLeaderElection,
+		LeaderElectionID:        "sealed-age-operator.age.io",
+		LeaderElectionNamespace: leaderNS,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -101,7 +108,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	setupLog.Info("starting manager")
+	setupLog.Info("starting manager", "leaderElection", enableLeaderElection, "leaderNamespace", leaderNS)
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
