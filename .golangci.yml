@@ -24,24 +24,28 @@ linters:
     - unparam
     - unused
   settings:
+    lll:
+      line-length: 140
+      tab-width: 1
     revive:
       rules:
         - name: comment-spacings
         - name: import-shadowing
-  exclusions:
-    generated: lax
-    rules:
-      - linters:
-          - lll
-        path: api/*
-      - linters:
-          - dupl
-          - lll
-        path: internal/*
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
+
+exclusions:
+  generated: lax
+  rules:
+    - linters:
+        - lll
+      path: api/*
+    - linters:
+        - dupl
+        - lll
+      path: internal/*
+  paths:
+    - third_party$
+    - builtin$
+    - examples$
 
 formatters:
   enable:
@@ -53,8 +57,3 @@ formatters:
       - third_party$
       - builtin$
       - examples$
-
-linters-settings:
-  lll:
-    line-length: 140
-    tab-width: 1
