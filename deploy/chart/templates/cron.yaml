@@ -16,7 +16,7 @@ spec:
           labels:
             {{- include "age-secrets.labels" . | nindent 12 }}
         spec:
-          serviceAccountName: {{ include "age-secrets.fullname" . }}-sealed-age-keygen
+          serviceAccountName: {{ include "age-secrets.fullname" . }}-job
           restartPolicy: OnFailure
           containers:
             - name: gen-age-key
