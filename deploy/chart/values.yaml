@@ -1,0 +1,29 @@
+fullnameOverride: sealed-age-controller
+sealedAgeController:
+  controller:
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsUser: 65532
+    image:
+      repository: callmewhatuwant/age-secrets-operator
+      tag: 0.0.2
+    imagePullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+  replicas: 3
+
+ageKeyRotation:
+  schedule: "0 0 1 * *"
+  image:
+    repository: alpine
+    tag: "3.20"
+    pullPolicy: IfNotPresent

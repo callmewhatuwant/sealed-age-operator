@@ -42,10 +42,6 @@ type SealedAgeSpec struct {
 	// Optional: list of recipients.
 	// +kubebuilder:validation:Optional
 	Recipients []string `json:"recipients,omitempty"`
-
-	// Optional: behavior flag for delete/restore.
-	// +kubebuilder:validation:Optional
-	RestoreOnDelete *bool `json:"restoreOnDelete,omitempty"`
 }
 
 // SealedAgeStatus defines observed state and metadata for the SealedAge resource.
