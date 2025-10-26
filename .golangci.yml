@@ -2,6 +2,11 @@ version: "2"
 
 run:
   allow-parallel-runners: true
+  # statt "exclusions.paths"
+  skip-dirs:
+    - third_party$
+    - builtin$
+    - examples$
 
 linters:
   default: none
@@ -23,7 +28,11 @@ linters:
     - unconvert
     - unparam
     - unused
+    # "formatters" gibt's nicht – diese zwei sind Linters:
+    - gofmt
+    - goimports
   settings:
+    # hier rein statt "linters-settings" (das meckerte ja)
     lll:
       line-length: 140
       tab-width: 1
@@ -32,28 +41,13 @@ linters:
         - name: comment-spacings
         - name: import-shadowing
 
-exclusions:
-  generated: lax
-  rules:
-    - linters:
+issues:
+  # ersetzt "exclusions.rules"
+  exclude-rules:
+    - path: ^api/
+      linters:
         - lll
-      path: api/*
-    - linters:
+    - path: ^internal/
+      linters:
         - dupl
         - lll
-      path: internal/*
-  paths:
-    - third_party$
-    - builtin$
-    - examples$
-
-formatters:
-  enable:
-    - gofmt
-    - goimports
-  exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
