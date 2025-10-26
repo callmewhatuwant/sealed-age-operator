@@ -7,7 +7,7 @@ domain: age.io
 layout:
 - go.kubebuilder.io/v4
 projectName: sealed-age-operator
-repo: github.com/yournamecallmewhatuwant/sealed-age-operator
+repo: github.com/callmewhatuwant/sealed-age-operator
 resources:
 - api:
     crdVersion: v1
@@ -16,6 +16,6 @@ resources:
   domain: age.io
   group: security
   kind: SealedAge
-  path: github.com/yournamecallmewhatuwant/sealed-age-operator/api/v1alpha1
+  path: github.com/callmewhatuwant/sealed-age-operator/api/v1alpha1
   version: v1alpha1
 version: "3"
