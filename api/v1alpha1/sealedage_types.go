@@ -21,32 +21,32 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// SealedAgeTemplate entspricht spec.template (du nutzt aktuell nur .type).
+// SealedAgeTemplate defines the structure for Secret templates (you currently use only .type).
 type SealedAgeTemplate struct {
 	// +kubebuilder:validation:Optional
 	Type string `json:"type,omitempty"`
 }
 
-// SealedAgeSpec beschreibt die gewünschte Secret-Spezifikation.
+// SealedAgeSpec defines the desired state of the SealedAge resource.
 type SealedAgeSpec struct {
-	// Verschlüsselte Daten (AGE-armor oder binary); key = Secret-Feldname.
+	// Encrypted data (AGE armored or binary); key = Secret field name.
 	// +kubebuilder:validation:Optional
 	EncryptedData map[string]string `json:"encryptedData,omitempty"`
 
-	// Secret-Template (z.B. Type: Opaque).
+	// Secret template (e.g., Type: Opaque).
 	// +kubebuilder:validation:Optional
 	Template SealedAgeTemplate `json:"template,omitempty"`
 
-	// Optional – falls du Empfänger-Informationen mitgeben willst.
+	// Optional: list of recipients (used for decryption logic if needed).
 	// +kubebuilder:validation:Optional
 	Recipients []string `json:"recipients,omitempty"`
 
-	// Optional – Policy-Flag (Logik später).
+	// Optional: behavior flag for delete/restore.
 	// +kubebuilder:validation:Optional
 	RestoreOnDelete *bool `json:"restoreOnDelete,omitempty"`
 }
 
-// SealedAgeStatus für Laufzeitinfos.
+// SealedAgeStatus defines observed state and metadata for the SealedAge resource.
 type SealedAgeStatus struct {
 	// +kubebuilder:validation:Optional
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
