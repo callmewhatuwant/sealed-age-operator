@@ -18,11 +18,14 @@ spec:
         app: sealed-age-controller
       {{- include "age-secrets.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "age-secrets.fullname" . }}
       containers:
         - name: controller
           image: {{ .Values.sealedAgeController.controller.image.repository }}:{{ .Values.sealedAgeController.controller.image.tag | default .Chart.AppVersion }}
           imagePullPolicy: {{ .Values.sealedAgeController.controller.imagePullPolicy }}
           resources: {{- toYaml .Values.sealedAgeController.controller.resources | nindent 12 }}
           securityContext: {{- toYaml .Values.sealedAgeController.controller.containerSecurityContext | nindent 12 }}
-      serviceAccountName: {{ include "age-secrets.fullname" . }}
+          args:
+            - --leader-elect={{ default true .Values.sealedAgeController.leaderElection.enabled }}
+            - --leader-election-namespace={{ default .Release.Namespace .Values.sealedAgeController.leaderElection.namespace }}
 
