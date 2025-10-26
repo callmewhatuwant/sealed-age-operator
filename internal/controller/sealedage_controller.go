@@ -14,50 +14,182 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// internal/controller/sealedage_controller.go
 package controller
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"io"
+	"strings"
+	"time"
 
+	age "filippo.io/age"
+	"filippo.io/age/armor"
+
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	securityv1alpha1 "github.com/yournamecallmewhatuwant/sealed-age-operator/api/v1alpha1"
 )
 
-// SealedAgeReconciler reconciles a SealedAge object
+// SealedAgeReconciler reconciles SealedAge resources.
 type SealedAgeReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+
+	// Configurable via CLI flags (see cmd/main.go)
+	KeyNamespace string // default: "sealed-age-system"
+	KeyLabelKey  string // default: "app"
+	KeyLabelVal  string // default: "age-key"
 }
 
-// +kubebuilder:rbac:groups=security.age.io,resources=sealedages,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=security.age.io,resources=sealedages,verbs=get;list;watch;update;patch
 // +kubebuilder:rbac:groups=security.age.io,resources=sealedages/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=security.age.io,resources=sealedages/finalizers,verbs=update
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the SealedAge object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.22.1/pkg/reconcile
 func (r *SealedAgeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = logf.FromContext(ctx)
+	logger := log.FromContext(ctx).WithValues("sealedage", req.NamespacedName)
 
-	// TODO(user): your logic here
+	// 1. Load the SealedAge resource.
+	var cr securityv1alpha1.SealedAge
+	if err := r.Get(ctx, req.NamespacedName, &cr); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
+	// 2. List available AGE key Secrets (by namespace and label).
+	keyList := &corev1.SecretList{}
+	if err := r.List(ctx, keyList,
+		client.InNamespace(r.KeyNamespace),
+		client.MatchingLabels{r.KeyLabelKey: r.KeyLabelVal},
+	); err != nil {
+		logger.Error(err, "failed to list key secrets", "namespace", r.KeyNamespace)
+		return ctrl.Result{}, err
+	}
+	if len(keyList.Items) == 0 {
+		logger.Info("no AGE keys found, will retry", "namespace", r.KeyNamespace)
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
+	// 3. Decrypt each field in spec.encryptedData.
+	plain := map[string][]byte{}
+	for field, enc := range cr.Spec.EncryptedData {
+		b, keyUsed, derr := decryptWithAge(ctx, enc, keyList.Items, cr.Spec.Recipients)
+		if derr != nil {
+			logger.Error(derr, "failed to decrypt", "field", field)
+			return ctrl.Result{}, fmt.Errorf("decrypt %s: %w", field, derr)
+		}
+		logger.Info("decrypted field", "field", field, "keySecret", keyUsed)
+		plain[field] = b
+	}
+
+	// 4. Create or update the target Secret (same name as the CR).
+	secretName := cr.Name
+	var secret corev1.Secret
+	secretKey := types.NamespacedName{Name: secretName, Namespace: cr.Namespace}
+
+	err := r.Get(ctx, secretKey, &secret)
+	if apierrors.IsNotFound(err) {
+		secret = corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secretName,
+				Namespace: cr.Namespace,
+			},
+		}
+	} else if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if secret.Data == nil {
+		secret.Data = map[string][]byte{}
+	}
+	for k, v := range plain {
+		secret.Data[k] = v
+	}
+	if t := cr.Spec.Template.Type; t != "" {
+		secret.Type = corev1.SecretType(t)
+	} else {
+		secret.Type = corev1.SecretTypeOpaque
+	}
+
+	if err := controllerutil.SetControllerReference(&cr, &secret, r.Scheme); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if apierrors.IsNotFound(err) {
+		if err := r.Create(ctx, &secret); err != nil {
+			return ctrl.Result{}, err
+		}
+	} else {
+		if err := r.Update(ctx, &secret); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	// 5. Update status.
+	cr.Status.ObservedGeneration = cr.Generation
+	cr.Status.SecretName = secretName
+	if uerr := r.Status().Update(ctx, &cr); uerr != nil {
+		logger.Error(uerr, "failed to update status")
+	}
+
+	logger.Info("reconciliation completed", "secret", secretKey.String())
 	return ctrl.Result{}, nil
 }
 
-// SetupWithManager sets up the controller with the Manager.
 func (r *SealedAgeReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&securityv1alpha1.SealedAge{}).
-		Named("sealedage").
+		Owns(&corev1.Secret{}).
 		Complete(r)
+}
+
+// decryptWithAge attempts to decrypt the provided armored AGE content using the key Secrets.
+func decryptWithAge(ctx context.Context, armored string, keySecrets []corev1.Secret, recipients []string) ([]byte, string, error) {
+	logger := log.FromContext(ctx)
+	for _, ks := range keySecrets {
+		name := ks.GetName()
+
+		privBytes, ok := ks.Data["private"]
+		if !ok {
+			logger.V(1).Info("missing 'private' field in key secret", "secret", name)
+			continue
+		}
+		priv := strings.TrimSpace(string(privBytes))
+
+		id, err := age.ParseX25519Identity(priv)
+		if err != nil {
+			logger.V(1).Info("failed to parse private identity", "secret", name, "err", err)
+			continue
+		}
+
+		trimmed := strings.TrimLeft(armored, " \t\r\n")
+		var src io.Reader = strings.NewReader(armored)
+		if strings.HasPrefix(trimmed, "-----BEGIN AGE ENCRYPTED FILE-----") {
+			src = armor.NewReader(strings.NewReader(armored))
+		}
+
+		decR, err := age.Decrypt(src, id)
+		if err != nil {
+			logger.V(1).Info("decryption failed with this key", "secret", name, "err", err, "recipients_hint", recipients)
+			continue
+		}
+		plain, err := io.ReadAll(decR)
+		if err != nil {
+			logger.V(1).Info("failed to read decrypted data", "secret", name, "err", err)
+			continue
+		}
+		return plain, name, nil
+	}
+	return nil, "", errors.New("failed to decrypt with any available key")
 }
