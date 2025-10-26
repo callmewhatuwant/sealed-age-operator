@@ -5,12 +5,21 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - security.age.io
   resources:
   - sealedages
   verbs:
-  - create
-  - delete
   - get
   - list
   - patch
