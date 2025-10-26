@@ -1,0 +1,9 @@
+apiVersion: security.age.io/v1alpha1
+kind: SealedAge
+metadata:
+  labels:
+    app.kubernetes.io/name: sealed-age-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: sealedage-sample
+spec:
+  # TODO(user): Add fields here
