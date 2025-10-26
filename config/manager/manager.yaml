@@ -5,13 +5,13 @@ metadata:
     control-plane: controller-manager
     app.kubernetes.io/name: sealed-age-operator
     app.kubernetes.io/managed-by: kustomize
-  name: system
+  name: sealed-age-system
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: controller-manager
-  namespace: system
+  namespace: sealed-age-system
   labels:
     control-plane: controller-manager
     app.kubernetes.io/name: sealed-age-operator
@@ -59,11 +59,11 @@ spec:
           type: RuntimeDefault
       containers:
       - command:
-        - /manager
+        - /sealed-age-controller   # angepasst: entspricht dem ENTRYPOINT aus deinem Dockerfile
         args:
           - --leader-elect
           - --health-probe-bind-address=:8081
-        image: controller:latest
+        image: callmewhatuwant/age-secrets-operator:0.0.1   # angepasst: dein korrektes Image
         name: manager
         ports: []
         securityContext:
@@ -97,3 +97,4 @@ spec:
       volumes: []
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
+
