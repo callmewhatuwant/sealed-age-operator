@@ -1,15 +1,14 @@
-version: "2"
+version: 1
 
 run:
   allow-parallel-runners: true
-  # statt "exclusions.paths"
   skip-dirs:
     - third_party$
     - builtin$
     - examples$
 
 linters:
-  default: none
+  disable-all: true
   enable:
     - copyloopvar
     - dupl
@@ -28,26 +27,21 @@ linters:
     - unconvert
     - unparam
     - unused
-    # "formatters" gibt's nicht – diese zwei sind Linters:
     - gofmt
     - goimports
-  settings:
-    # hier rein statt "linters-settings" (das meckerte ja)
-    lll:
-      line-length: 140
-      tab-width: 1
-    revive:
-      rules:
-        - name: comment-spacings
-        - name: import-shadowing
+
+linters-settings:
+  lll:
+    line-length: 140   # <- Einzeiler bis 140 Zeichen erlaubt
+    tab-width: 1
+  revive:
+    rules:
+      - name: comment-spacings
+      - name: import-shadowing
 
 issues:
-  # ersetzt "exclusions.rules"
   exclude-rules:
     - path: ^api/
-      linters:
-        - lll
+      linters: [lll]
     - path: ^internal/
-      linters:
-        - dupl
-        - lll
+      linters: [dupl, lll]
