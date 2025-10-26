@@ -21,23 +21,25 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// SealedAgeTemplate defines the structure for Secret templates (you currently use only .type).
+// SealedAgeTemplate defines Secret template settings (you currently use only .type).
 type SealedAgeTemplate struct {
+	// Default to Opaque if not specified.
 	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=Opaque
 	Type string `json:"type,omitempty"`
 }
 
 // SealedAgeSpec defines the desired state of the SealedAge resource.
 type SealedAgeSpec struct {
-	// Encrypted data (AGE armored or binary); key = Secret field name.
-	// +kubebuilder:validation:Optional
-	EncryptedData map[string]string `json:"encryptedData,omitempty"`
+	// REQUIRED: Encrypted data (AGE armored or binary); key = Secret field name.
+	// +kubebuilder:validation:Required
+	EncryptedData map[string]string `json:"encryptedData"`
 
 	// Secret template (e.g., Type: Opaque).
 	// +kubebuilder:validation:Optional
 	Template SealedAgeTemplate `json:"template,omitempty"`
 
-	// Optional: list of recipients (used for decryption logic if needed).
+	// Optional: list of recipients.
 	// +kubebuilder:validation:Optional
 	Recipients []string `json:"recipients,omitempty"`
 
@@ -58,7 +60,9 @@ type SealedAgeStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:path=sealedages,scope=Namespaced,shortName=sa
+// Use ShortName = sea (as requested).
+// +kubebuilder:resource:path=sealedages,scope=Namespaced,shortName=sea
+// Printer columns (shown in `kubectl get sealedages`).
 // +kubebuilder:printcolumn:name="Secret",type=string,JSONPath=`.status.secretName`
 // +kubebuilder:printcolumn:name="Age",type=integer,JSONPath=`.metadata.generation`
 type SealedAge struct {

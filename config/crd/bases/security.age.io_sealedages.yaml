@@ -12,7 +12,7 @@ spec:
     listKind: SealedAgeList
     plural: sealedages
     shortNames:
-    - sa
+    - sea
     singular: sealedage
   scope: Namespaced
   versions:
@@ -26,6 +26,9 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
+        description: |-
+          Use ShortName = sea (as requested).
+          Printer columns (shown in `kubectl get sealedages`).
         properties:
           apiVersion:
             description: |-
@@ -51,12 +54,11 @@ spec:
               encryptedData:
                 additionalProperties:
                   type: string
-                description: Encrypted data (AGE armored or binary); key = Secret
-                  field name.
+                description: 'REQUIRED: Encrypted data (AGE armored or binary); key
+                  = Secret field name.'
                 type: object
               recipients:
-                description: 'Optional: list of recipients (used for decryption logic
-                  if needed).'
+                description: 'Optional: list of recipients.'
                 items:
                   type: string
                 type: array
@@ -67,8 +69,12 @@ spec:
                 description: 'Secret template (e.g., Type: Opaque).'
                 properties:
                   type:
+                    default: Opaque
+                    description: Default to Opaque if not specified.
                     type: string
                 type: object
+            required:
+            - encryptedData
             type: object
           status:
             description: SealedAgeStatus defines observed state and metadata for the
