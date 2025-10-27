@@ -23,6 +23,10 @@ spec:
         - name: controller
           image: {{ .Values.sealedAgeController.controller.image.repository }}:{{ .Values.sealedAgeController.controller.image.tag | default .Chart.AppVersion }}
           imagePullPolicy: {{ .Values.sealedAgeController.controller.imagePullPolicy }}
+          ports:
+            - containerPort: 8080
+              name: metrics
+              protocol: TCP
           resources: {{- toYaml .Values.sealedAgeController.controller.resources | nindent 12 }}
           securityContext: {{- toYaml .Values.sealedAgeController.controller.containerSecurityContext | nindent 12 }}
           args:

@@ -21,6 +21,20 @@ sealedAgeController:
         memory: 64Mi
   replicas: 3
 
+metricsService:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      name: metrics
+      targetPort: 8080
+
+ServiceMonitor:
+  enabled: true
+  endpoints:
+    - port: metrics
+      interval: 30s 
+      path: /metrics
+
 ageKeyRotation:
   initialRun:
     enabled: true
