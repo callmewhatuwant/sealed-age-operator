@@ -7,6 +7,7 @@ theme:
     - navigation.sections
     - search.suggest
     - search.highlight
+    - version  
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
