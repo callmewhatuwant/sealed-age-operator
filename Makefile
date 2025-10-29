@@ -1,5 +1,6 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
+IMG_ALPINE ?=alpine-job:latest
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -115,9 +116,14 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
+
 .PHONY: docker-build
-docker-build: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build --no-cache -t ${IMG} .
+
+docker-build-op: ## Build docker image with the manager using Dockerfile-op.
+	$(CONTAINER_TOOL) build --no-cache -t ${IMG} -f Dockerfile-op .
+
+docker-build-alpine: ## Build docker image with the manager using Dockerfile-alpine.
+	$(CONTAINER_TOOL) build --no-cache -t ${IMG_ALPINE} -f Dockerfile-alpine .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
