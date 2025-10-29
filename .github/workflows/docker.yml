@@ -32,4 +32,4 @@ jobs:
           context: .
           file: ./Dockerfile-${{ inputs.variant }}
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.image }}:${{ inputs.variant }}-${{ inputs.tag }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.image }}:${{ inputs.tag }}
