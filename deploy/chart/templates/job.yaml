@@ -24,7 +24,8 @@ spec:
             - |
               set -euo pipefail
 
-              #apk add --no-cache kubectl age
+              # Install required tools
+              # apk add --no-cache kubectl age
 
               NS="{{ .Release.Namespace }}"
               DATE="$(date +%Y-%m-%d-%H-%M)"
