@@ -5,13 +5,19 @@ metadata:
   name: {{ include "age-secrets.fullname" . }}-age-key-rotation-init
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "age-secrets.labels" . | nindent 4 }}
+    {{- $base := (include "age-secrets.labels" . | fromYaml) }}
+    {{- range $k, $v := $base }}
+    {{ $k }}: "{{ $v }}-job"
+    {{- end }}    
 spec:
   backoffLimit: 1
   template:
     metadata:
       labels:
-        {{- include "age-secrets.labels" . | nindent 8 }}
+        {{- $base := (include "age-secrets.labels" . | fromYaml) }}
+        {{- range $k, $v := $base }}
+        {{ $k }}: "{{ $v }}-job"
+        {{- end }}
     spec:
       serviceAccountName: {{ include "age-secrets.fullname" . }}-job
       restartPolicy: OnFailure

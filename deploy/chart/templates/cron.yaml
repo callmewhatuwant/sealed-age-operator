@@ -4,7 +4,10 @@ metadata:
   name: {{ include "age-secrets.fullname" . }}-age-key-rotation
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "age-secrets.labels" . | nindent 4 }}
+    {{- $base := (include "age-secrets.labels" . | fromYaml) }}
+    {{- range $k, $v := $base }}
+    {{ $k }}: "{{ $v }}-job"
+    {{- end }}
 spec:
   schedule: {{ .Values.ageKeyRotation.schedule | quote }}
   successfulJobsHistoryLimit: 1
@@ -14,7 +17,10 @@ spec:
       template:
         metadata:
           labels:
-            {{- include "age-secrets.labels" . | nindent 12 }}
+            {{- $base := (include "age-secrets.labels" . | fromYaml) }}
+            {{- range $k, $v := $base }}
+            {{ $k }}: "{{ $v }}-job"
+            {{- end }}
         spec:
           serviceAccountName: {{ include "age-secrets.fullname" . }}-job
           restartPolicy: OnFailure
