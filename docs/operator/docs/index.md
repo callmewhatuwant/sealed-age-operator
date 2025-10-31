@@ -95,6 +95,11 @@ kubectl get secret -n sealed-age-system
 fullnameOverride: sealed-age-controller
 sealedAgeController:
 
+## leader election
+  leaderElection:
+    enabled: true
+    namespace: sealed-age-system
+
   ## replicas for ha
   replicas: 3
 
