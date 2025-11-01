@@ -159,6 +159,17 @@ ageKeyRotation:
     pullPolicy: IfNotPresent
 ```
 
+## Enhancements
+
+* Open a merge request if you want to contribute to the project.  
+* The project just started, so there’s probably a lot to improve.  
+* Please don’t be too harsh on me. 🙂
+
+## Issue
+
+* Found a bug or have a feature request?
+* Please open an issue on [github.com](https://github.com/callmewhatuwant/sealed-age-operator).
+
 ## Support me if you want
 
 BTC:
@@ -172,7 +183,3 @@ Solana:
 B6aGswkR4tpYDCaLny4B1rZWwQNrDk4dEvpEGjJw3GGG
 ```
 
-<div style="text-align:center;">
-  <img src="images/qr-btc.png" alt="BTC QR" width="300" height="300" style="display:inline-block; margin-right:30px;">
-  <img src="images/qr-sol.png" alt="SOL QR" width="300" height="300" style="display:inline-block;">
-</div>
