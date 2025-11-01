@@ -170,6 +170,10 @@ ageKeyRotation:
 * Found a bug or have a feature request?
 * Please open an issue on [github.com](https://github.com/callmewhatuwant/sealed-age-operator).
 
+## Other projects by me
+
+* my portfolio [portfolio-nick.de](https://www.portfolio-nick.de)
+
 ## Support me if you want
 
 BTC:
