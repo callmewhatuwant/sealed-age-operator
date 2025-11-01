@@ -107,7 +107,7 @@ sealedAgeController:
     ## image
     image:
       repository: callmewhatuwant/age-secrets-operator
-      tag: 0.0.2
+      tag: 0.0.1
     imagePullPolicy: IfNotPresent
 
     ## resources
@@ -154,8 +154,8 @@ ageKeyRotation:
 
   ## image for cron and init job
   image:
-    repository: alpine
-    tag: "3.20"
+    repository: callmewhatuwant/age-job
+    tag: "3.22.2"
     pullPolicy: IfNotPresent
 ```
 
