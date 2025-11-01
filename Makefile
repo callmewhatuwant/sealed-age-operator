@@ -152,7 +152,27 @@ build-installer: manifests generate kustomize ## Generate a consolidated YAML wi
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default > dist/install.yaml
 
-##@ Deployment
+
+## mkdocs
+
+.PHONY: docs-setup
+docs-setup:
+	python3 -m venv .venv && \
+        source .venv/bin/activate && \
+        pip install mkdocs mkdocs-material mike
+
+.PHONY: mkdocs mike-deploy mike-run
+mkdocs:
+	/root/sealed-age-operator/.venv/bin/mkdocs serve --dev-addr 0.0.0.0:8080 -f /root/sealed-age-operator/docs/operator/mkdocs.yml
+
+mike-deploy:
+	cd /root/sealed-age-operator/docs/operator && /root/sealed-age-operator/.venv/bin/mike deploy 0.0.1 latest --branch docs
+
+mike-run:
+	cd /root/sealed-age-operator/docs/operator && /root/sealed-age-operator/.venv/bin/mike serve --dev-addr 0.0.0.0:8080
+
+
+###@ Deployment
 
 ifndef ignore-not-found
   ignore-not-found = false
