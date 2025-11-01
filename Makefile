@@ -159,7 +159,7 @@ mkdocs:
 	/root/sealed-age-operator/.venv/bin/mkdocs serve --dev-addr 0.0.0.0:8080 -f /root/sealed-age-operator/docs/operator/mkdocs.yml
 
 mike-deploy:
-	cd /root/sealed-age-operator/docs/operator && /root/sealed-age-operator/.venv/bin/mike deploy 0.0.1 latest
+	cd /root/sealed-age-operator/docs/operator && /root/sealed-age-operator/.venv/bin/mike deploy 0.0.1 latest --branch docs
 
 mike-run:
 	cd /root/sealed-age-operator/docs/operator && /root/sealed-age-operator/.venv/bin/mike serve --dev-addr 0.0.0.0:8080
