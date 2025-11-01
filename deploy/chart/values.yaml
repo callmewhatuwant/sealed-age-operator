@@ -1,17 +1,23 @@
+## name override
 fullnameOverride: sealed-age-controller
 sealedAgeController:
+
+## leader election
+  leaderElection:
+    enabled: true
+    namespace: sealed-age-system
+
+  ## replicas for ha
+  replicas: 3
+
   controller:
-    containerSecurityContext:
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-        - ALL
-      runAsNonRoot: true
-      runAsUser: 65532
+    ## image
     image:
       repository: callmewhatuwant/age-secrets-operator
-      tag: 0.0.2
+      tag: 0.0.1
     imagePullPolicy: IfNotPresent
+
+    ## resources
     resources:
       limits:
         cpu: 200m
@@ -19,8 +25,17 @@ sealedAgeController:
       requests:
         cpu: 100m
         memory: 64Mi
-  replicas: 3
 
+    ## security
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsUser: 65532
+
+## prometheus
 metricsService:
   type: ClusterIP
   ports:
@@ -28,18 +43,24 @@ metricsService:
       name: metrics
       targetPort: 8080
 
+## monitor for prometheus
 ServiceMonitor:
   enabled: true
   endpoints:
     - port: metrics
-      interval: 30s 
+      interval: 30s
       path: /metrics
 
+## job
 ageKeyRotation:
+  schedule: "0 0 1 * *"
+
+  ## initial key
   initialRun:
     enabled: true
-  schedule: "0 0 1 * *"
+
+  ## image for cron and init job
   image:
-    repository: alpine
-    tag: "3.20"
+    repository: callmewhatuwant/age-job
+    tag: "3.22.2"
     pullPolicy: IfNotPresent
